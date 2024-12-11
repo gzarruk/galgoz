@@ -133,7 +133,6 @@ dmypy.json
 # Local development files
 .DS_Store
 localdev/
-*.ipynb
 
 poetry.lock
 

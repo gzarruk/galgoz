@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import os
-import oandapyV20 # type ignore
+import oandapyV20  # type: ignore
 import oandapyV20.endpoints.accounts as accounts  # type: ignore
 
 load_dotenv()

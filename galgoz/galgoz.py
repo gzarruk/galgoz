@@ -7,6 +7,7 @@ import pandas as pd
 import oandapyV20  # type: ignore
 import oandapyV20.endpoints.accounts as accounts  # type: ignore
 import oandapyV20.endpoints.instruments as instruments  # type: ignore
+import oandapyV20.endpoints.orders as orders # type: ignore
 import plotly.graph_objects as go
 from datetime import datetime as dt
 
@@ -86,6 +87,25 @@ class Galgoz(BaseModel):
         data_dicts = [{'time': item['time'], 'volume': item['volume'], **item[price_key]} for item in data]
         df = pd.DataFrame(data_dicts)
         return df
+    
+    def create_order(self, units: str, type: str = "MARKET"):
+        """
+        Create an order for the specified instrument. Default is market order.
+        """
+        data = {
+            "order": {
+                "instrument": self.instrument,
+                "units": units,
+                "timeInForce": "FOK",
+                "type": type,
+                "positionFill": "DEFAULT",
+            }
+        }
+
+        r = orders.OrderCreate(accountID=self.account_id, data=data)
+        response = self.client.request(r)
+        return response
+        
 
     def _set_price_string(self, kwargs):
         """ 

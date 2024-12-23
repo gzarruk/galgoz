@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import oandapyV20  # type: ignore
-import oandapyV20.endpoints.accounts as accounts  # type: ignore
-import oandapyV20.endpoints.instruments as instruments  # type: ignore
-import oandapyV20.endpoints.orders as orders # type: ignore
+import oandapyV20.endpoints.accounts as accounts
+import oandapyV20.endpoints.instruments as instruments
+import oandapyV20.endpoints.orders as orders
+import oandapyV20.endpoints.trades as trades
 import plotly.graph_objects as go
 from datetime import datetime as dt
 
@@ -29,7 +30,17 @@ class Galgoz(BaseModel):
     instrument: str = "GBP_JPY"
     
 
-    def fetch_instruments(self, fetch_all_metadata=False):
+    def fetch_instruments(self):
+        """
+        Fetches the list of instruments for the account.
+
+        This method sends a request to retrieve the instruments associated with the account ID
+        and returns the list of instruments.
+
+        Returns:
+            list: A list of instruments associated with the account.
+        """
+        
         instruments = accounts.AccountInstruments(accountID=self.account_id)
         response = self.client.request(instruments)
         instruments = response.get("instruments", [])        
@@ -39,16 +50,15 @@ class Galgoz(BaseModel):
         """
         Fetches candle data for a specified instrument.
 
-        Parameters:
-        Consult the OANDA API (https://developer.oanda.com/rest-live-v20/introduction/) documentation for the available parameters:
-        - granularity (str): The time frame for each candle (e.g., "H1" for 1 hour). Default is "H1".
-        - count (int): The number of candles to fetch if date_from and date_to are not specified. Default is 10.
-        - price (str): The price type to fetch (e.g., "M" for mid price). Default is "M".
-        - date_from (datetime): The start date and time for the candle data in UTC. Default is None.
-        - date_to (datetime): The end date and time for the candle data in UTC. Default is None.
+        Args:
+            granularity (str): The time frame for each candle (e.g., "H1" for 1 hour). Default is "H1".
+            count (int): The number of candles to fetch if date_from and date_to are not specified. Default is 10.
+            price (str): The price type to fetch (e.g., "M" for mid price). Default is "M".
+            date_from (datetime): The start date and time for the candle data in UTC. Default is None.
+            date_to (datetime): The end date and time for the candle data in UTC. Default is None.
 
         Returns:
-        - list: A list of candle data dictionaries.
+            list: A list of candle data dictionaries.
 
         If both date_from and date_to are provided, the method fetches candles within the specified date range.
         Otherwise, it fetches the specified count of candles.
@@ -76,11 +86,11 @@ class Galgoz(BaseModel):
         """
         Fetches candle data and returns it as a pandas DataFrame.
 
-        Parameters:
-        **kwargs: Check the `fetch_candles` method for the available parameters.
+        Args:
+            **kwargs: Check the `fetch_candles` method for the available parameters.
 
         Returns:
-        pd.DataFrame: A DataFrame containing the candle data with columns 'time', 'volume', and price-specific columns.
+            pd.DataFrame: A DataFrame containing the candle data with columns 'time', 'volume', and price-specific columns.
         """
         price_key = self._set_price_string(kwargs)
         data = self.fetch_candles(**kwargs)
@@ -90,8 +100,16 @@ class Galgoz(BaseModel):
     
     def create_order(self, units: str, type: str = "MARKET"):
         """
-        Create an order for the specified instrument. Default is market order.
+        Creates an order with the specified units and type.
+
+        Args:
+            units (str): The number of units to order.
+            type (str, optional): The type of order to create. Defaults to "MARKET".
+
+        Returns:
+            dict: The response from the order creation request.
         """
+        
         data = {
             "order": {
                 "instrument": self.instrument,
@@ -105,11 +123,36 @@ class Galgoz(BaseModel):
         r = orders.OrderCreate(accountID=self.account_id, data=data)
         response = self.client.request(r)
         return response
-        
+    
+    def close_trade(self, trade_id: str, units: str = "ALL"):
+        """
+        Close a specific trade by its trade ID.
+
+        Args:
+            trade_id (str): The ID of the trade to close.
+            units (str): The number of units to close. Default is "ALL".
+
+        Returns:
+            dict: The response from the OANDA API.
+        """
+        data = {
+            "units": units
+        }
+
+        r = trades.TradeClose(accountID=self.account_id, tradeID=trade_id, data=data)
+        response = self.client.request(r)
+        return response
+
 
     def _set_price_string(self, kwargs):
         """ 
         Helper method to check the price type and set the corresponding price key.
+
+        Args:
+            kwargs (dict): The keyword arguments containing the price type.
+
+        Returns:
+            str: The price key corresponding to the price type.
         """
         if 'price' not in kwargs:
             kwargs['price'] = 'M'
@@ -125,5 +168,3 @@ class Galgoz(BaseModel):
             price_key = 'mid'
             print("Invalid price type provided. Defaulting to 'M'. Accepted values are 'M', 'A', 'B'.")
         return price_key
-
-

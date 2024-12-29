@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from dataclasses import dataclass, field
+from tkinter import N
+from pydantic import BaseModel
 from typing import Any, Optional
 from dotenv import load_dotenv
 import os
@@ -11,14 +11,31 @@ import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.trades as trades
 import plotly.graph_objects as go
 from datetime import datetime as dt
+from datetime import timedelta
 from pathlib import Path
+
+# Load env parameters (account details and tokens)
+load_dotenv()
 
 # Get the root directory of the project
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
-# Define the path to the data folder
 DATA_FOLDER = ROOT_DIR / "data"
-load_dotenv()
+
+MAX_CANDLES = 5000
+
+# Time increments for each granularity in minutes
+TIME_INCREMENT = {
+    "M1": 1 * MAX_CANDLES,
+    "M5": 5 * MAX_CANDLES,
+    "M15": 15 * MAX_CANDLES,
+    "M30": 30 * MAX_CANDLES,
+    "H1": 60 * MAX_CANDLES,
+    "H4": 240 * MAX_CANDLES,
+    "D": 1440 * MAX_CANDLES,
+    "W": 10080 * MAX_CANDLES,
+    "M": 43200 * MAX_CANDLES,
+}
 
 
 class Galgoz(BaseModel):
@@ -76,22 +93,42 @@ class Galgoz(BaseModel):
         If both date_from and date_to are provided, the method fetches candles within the specified date range.
         Otherwise, it fetches the specified count of candles.
         """
+
         params = {
             "granularity": granularity,
             "price": price,
         }
 
         if date_from is not None and date_to is not None:
-            try:
-                dt.strptime(date_from, "%Y-%m-%dT%H:%M:%SZ")
-                dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ")
-            except ValueError:
-                raise ValueError(
-                    "Incorrect date format, should be YYYY-MM-DDTHH:MM:SSZ"
-                )
+            self._validate_date_format(date_from, date_to)
 
-            params["from"] = date_from
-            params["to"] = date_to
+            start_date = dt.strptime(date_from, "%Y-%m-%dT%H:%M:%SZ")
+            end_date = start_date
+
+            candles_list: list = []
+            while end_date < dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ"):
+                end_date = start_date + timedelta(minutes=TIME_INCREMENT[granularity])
+                params["from"] = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+                if end_date > dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ"):
+                    end_date = dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ")
+
+                params["to"] = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+                print(f"Fetching candles from {start_date} to {end_date}")
+                candles = instruments.InstrumentsCandles(
+                    instrument=self.instrument, params=params
+                )
+                response = self.client.request(candles)
+                candles_list.extend(response.get("candles", []))
+                print(f"Total candles fetched: {len(response.get('candles', []))}")
+                start_date = end_date
+            return candles_list
+            # params["from"] = date_from
+            # params["to"] = date_to
+            # candles = instruments.InstrumentsCandles(
+            #     instrument=self.instrument, params=params
+            # )
+            # response = self.client.request(candles)
         else:
             if count > 5000:
                 count = 5000
@@ -99,13 +136,18 @@ class Galgoz(BaseModel):
                     "The maximum number of candles that can be fetched is 5000. Setting count to 5000."
                 )
             params["count"] = str(count)
+            candles = instruments.InstrumentsCandles(
+                instrument=self.instrument, params=params
+            )
+            response = self.client.request(candles)
+            return response.get("candles", [])
 
-        candles = instruments.InstrumentsCandles(
-            instrument=self.instrument, params=params
-        )
-        response = self.client.request(candles)
-
-        return response.get("candles", [])
+    def _validate_date_format(self, date_from, date_to):
+        try:
+            dt.strptime(date_from, "%Y-%m-%dT%H:%M:%SZ")
+            dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            raise ValueError("Incorrect date format, should be YYYY-MM-DDTHH:MM:SSZ")
 
     def candles_df(self, **kwargs) -> pd.DataFrame:
         """
@@ -167,5 +209,38 @@ class Galgoz(BaseModel):
         response = self.client.request(r)
         return response
 
-    def store_data(self):
-        pass
+    def store_data(
+        self,
+        granularity: str = "H1",
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Fetches candle data and stores it as a pickle file in the DATA_FOLDER.
+
+        The filename is generated based on the instrument, granularity, date_from, date_to, and the current timestamp.
+
+        Args:
+            granularity (str): The time frame for each candle (e.g., "H1" for 1 hour). Default is "H1".
+            date_from (str): The start date and time for the candle data in UTC. Date format must be YYYY-MM-DDTHH:MM:SSZ. Default is None.
+            date_to (str): The end date and time for the candle data in UTC. Date format must be YYYY-MM-DDTHH:MM:SSZ. Default is None.
+
+        Returns:
+            str: The path to the saved pickle file.
+        """
+        if date_from is None or date_to is None:
+            raise ValueError("Both date_from and date_to must be provided.")
+
+        df = self.candles_df(
+            granularity=granularity, date_from=date_from, date_to=date_to, **kwargs
+        )
+        filename = f"{self.instrument}_{granularity}.pkl"
+        filepath = DATA_FOLDER / filename
+        if len(df) > 0:
+            df.to_pickle(filepath)
+            print(f"Data saved to {filepath}")
+        else:
+            print(
+                f"No data to save for {self.instrument} at {granularity} granularity."
+            )

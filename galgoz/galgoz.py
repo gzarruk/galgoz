@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -53,7 +53,12 @@ class Galgoz(BaseModel):
         return instruments
 
     def fetch_candles(
-        self, granularity="H1", count=10, price="MBA", date_from=None, date_to=None
+        self,
+        granularity: str = "H1",
+        count: int = 10,
+        price: str = "MBA",
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
     ) -> list:
         """
         Fetches candle data for a specified instrument.
@@ -62,8 +67,8 @@ class Galgoz(BaseModel):
             granularity (str): The time frame for each candle (e.g., "H1" for 1 hour). Default is "H1".
             count (int): The number of candles to fetch if date_from and date_to are not specified. Default is 10.
             price (str): The price type to fetch (e.g., "M" for mid price). Default is "M".
-            date_from (datetime): The start date and time for the candle data in UTC. Default is None.
-            date_to (datetime): The end date and time for the candle data in UTC. Default is None.
+            date_from (str): The start date and time for the candle data in UTC. Date format must be YYYY-MM-DDTHH:MM:SSZ. Default is None.
+            date_to (str): The end date and time for the candle data in UTC.Date format must be YYYY-MM-DDTHH:MM:SSZ. Default is None.
 
         Returns:
             list: A list of candle data dictionaries.
@@ -77,16 +82,23 @@ class Galgoz(BaseModel):
         }
 
         if date_from is not None and date_to is not None:
-            date_format = "%Y-%m-%dT%H:%M:%SZ"
-            params["from"] = dt.strftime(date_from, date_format)
-            params["to"] = dt.strftime(date_to, date_format)
+            try:
+                dt.strptime(date_from, "%Y-%m-%dT%H:%M:%SZ")
+                dt.strptime(date_to, "%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                raise ValueError(
+                    "Incorrect date format, should be YYYY-MM-DDTHH:MM:SSZ"
+                )
+
+            params["from"] = date_from
+            params["to"] = date_to
         else:
             if count > 5000:
                 count = 5000
                 print(
                     "The maximum number of candles that can be fetched is 5000. Setting count to 5000."
                 )
-            params["count"] = count
+            params["count"] = str(count)
 
         candles = instruments.InstrumentsCandles(
             instrument=self.instrument, params=params

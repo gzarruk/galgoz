@@ -217,7 +217,7 @@ class Galgoz(BaseModel):
         **kwargs,
     ):
         """
-        Fetches candle data and stores it as a pickle file in the DATA_FOLDER.
+        Fetches candle data and stores it as a pickle file in the data folder.
 
         The filename is generated based on the instrument, granularity, date_from, date_to, and the current timestamp.
 

@@ -11,11 +11,18 @@ import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.trades as trades
 import plotly.graph_objects as go
 from datetime import datetime as dt
+from pathlib import Path
 
+# Get the root directory of the project
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
+# Define the path to the data folder
+DATA_FOLDER = ROOT_DIR / "data"
 load_dotenv()
 
+
 class Galgoz(BaseModel):
-    account: str = "practice"       
+    account: str = "practice"
     account_id: str = os.getenv(
         "OANDA_LIVE_ACCOUNT_ID" if account == "live" else "OANDA_PRACTICE_ACCOUNT_ID",
         "",
@@ -28,7 +35,6 @@ class Galgoz(BaseModel):
         )
     )
     instrument: str = "GBP_JPY"
-    
 
     def fetch_instruments(self):
         """
@@ -40,13 +46,15 @@ class Galgoz(BaseModel):
         Returns:
             list: A list of instruments associated with the account.
         """
-        
+
         instruments = accounts.AccountInstruments(accountID=self.account_id)
         response = self.client.request(instruments)
-        instruments = response.get("instruments", [])        
+        instruments = response.get("instruments", [])
         return instruments
 
-    def fetch_candles(self, granularity="H1", count=10, price="M", date_from=None, date_to=None):
+    def fetch_candles(
+        self, granularity="H1", count=10, price="MBA", date_from=None, date_to=None
+    ) -> list:
         """
         Fetches candle data for a specified instrument.
 
@@ -73,6 +81,11 @@ class Galgoz(BaseModel):
             params["from"] = dt.strftime(date_from, date_format)
             params["to"] = dt.strftime(date_to, date_format)
         else:
+            if count > 5000:
+                count = 5000
+                print(
+                    "The maximum number of candles that can be fetched is 5000. Setting count to 5000."
+                )
             params["count"] = count
 
         candles = instruments.InstrumentsCandles(
@@ -81,8 +94,8 @@ class Galgoz(BaseModel):
         response = self.client.request(candles)
 
         return response.get("candles", [])
-    
-    def candles_df(self, **kwargs):
+
+    def candles_df(self, **kwargs) -> pd.DataFrame:
         """
         Fetches candle data and returns it as a pandas DataFrame.
 
@@ -92,12 +105,13 @@ class Galgoz(BaseModel):
         Returns:
             pd.DataFrame: A DataFrame containing the candle data with columns 'time', 'volume', and price-specific columns.
         """
-        price_key = self._set_price_string(kwargs)
         data = self.fetch_candles(**kwargs)
-        data_dicts = [{'time': item['time'], 'volume': item['volume'], **item[price_key]} for item in data]
-        df = pd.DataFrame(data_dicts)
+        df = pd.json_normalize(data, sep="_")
+        df.columns = df.columns.str.replace("bid_", "bid_", regex=False)
+        df.columns = df.columns.str.replace("ask_", "ask_", regex=False)
+        df.columns = df.columns.str.replace("mid_", "mid_", regex=False)
         return df
-    
+
     def create_order(self, units: str, type: str = "MARKET"):
         """
         Creates an order with the specified units and type.
@@ -109,7 +123,7 @@ class Galgoz(BaseModel):
         Returns:
             dict: The response from the order creation request.
         """
-        
+
         data = {
             "order": {
                 "instrument": self.instrument,
@@ -123,7 +137,7 @@ class Galgoz(BaseModel):
         r = orders.OrderCreate(accountID=self.account_id, data=data)
         response = self.client.request(r)
         return response
-    
+
     def close_trade(self, trade_id: str, units: str = "ALL"):
         """
         Close a specific trade by its trade ID.
@@ -135,36 +149,11 @@ class Galgoz(BaseModel):
         Returns:
             dict: The response from the OANDA API.
         """
-        data = {
-            "units": units
-        }
+        data = {"units": units}
 
         r = trades.TradeClose(accountID=self.account_id, tradeID=trade_id, data=data)
         response = self.client.request(r)
         return response
 
-
-    def _set_price_string(self, kwargs):
-        """ 
-        Helper method to check the price type and set the corresponding price key.
-
-        Args:
-            kwargs (dict): The keyword arguments containing the price type.
-
-        Returns:
-            str: The price key corresponding to the price type.
-        """
-        if 'price' not in kwargs:
-            kwargs['price'] = 'M'
-            price_key = 'mid'
-        elif kwargs['price'] == 'M':
-            price_key = 'mid'
-        elif kwargs['price'] == 'A':
-            price_key = 'ask'
-        elif kwargs['price'] == 'B':
-            price_key = 'bid'
-        else:
-            kwargs['price'] = 'M'
-            price_key = 'mid'
-            print("Invalid price type provided. Defaulting to 'M'. Accepted values are 'M', 'A', 'B'.")
-        return price_key
+    def store_data(self):
+        pass

@@ -1,4 +1,3 @@
-from tkinter import N
 from pydantic import BaseModel
 from typing import Any, Optional
 from dotenv import load_dotenv
@@ -123,12 +122,6 @@ class Galgoz(BaseModel):
                 print(f"Total candles fetched: {len(response.get('candles', []))}")
                 start_date = end_date
             return candles_list
-            # params["from"] = date_from
-            # params["to"] = date_to
-            # candles = instruments.InstrumentsCandles(
-            #     instrument=self.instrument, params=params
-            # )
-            # response = self.client.request(candles)
         else:
             if count > 5000:
                 count = 5000

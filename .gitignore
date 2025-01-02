@@ -140,3 +140,4 @@ poetry.lock
 
 /projects/**/Dockerfile
 /src/**/Dockerfile
+galgoz.code-workspace

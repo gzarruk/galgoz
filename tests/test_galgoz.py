@@ -1,6 +1,7 @@
 from galgoz import Galgoz, DATA_FOLDER
 import pandas as pd
 from pathlib import Path
+from plotly import graph_objects as go
 
 gz = Galgoz()
 
@@ -25,6 +26,10 @@ def test_store_data():
     assert len(df) > 0, "Dataframe is empty"
     
     
+def test_plot_candles():
+    df_plot = pd.read_pickle(Path(DATA_FOLDER) / "file_for_testing.pkl")
+    fig = gz.plot_candles(df_plot)
+    assert isinstance(fig, go.Figure), "Plot is not a Plotly Figure"
     
-if __name__ == "__main__":
-    test_store_data()
+        
+    

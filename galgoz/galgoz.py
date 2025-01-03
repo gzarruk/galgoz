@@ -10,6 +10,7 @@ import oandapyV20.endpoints.accounts as accounts
 import oandapyV20.endpoints.instruments as instruments
 import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.trades as trades
+from oandapyV20.exceptions import V20Error
 import plotly.graph_objects as go
 from datetime import datetime as dt
 from datetime import timedelta
@@ -71,6 +72,7 @@ class Galgoz(BaseModel):
 
         instruments = accounts.AccountInstruments(accountID=self.account_id)
         response = self.client.request(instruments)
+        print(response)
         instruments = response.get("instruments", [])
         return instruments
 
@@ -188,7 +190,15 @@ class Galgoz(BaseModel):
         }
 
         r = orders.OrderCreate(accountID=self.account_id, data=data)
-        response = self.client.request(r)
+        try:
+            response = self.client.request(r)
+            print("Order created successfully.")
+        except V20Error as e:
+            print(f"V20Error: {e}")
+            response = None
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            response = None
         return response
 
     def close_trade(self, trade_id: str, units: str = "ALL"):
@@ -205,7 +215,15 @@ class Galgoz(BaseModel):
         data = {"units": units}
 
         r = trades.TradeClose(accountID=self.account_id, tradeID=trade_id, data=data)
-        response = self.client.request(r)
+        try:
+            response = self.client.request(r)
+            print("Trade closed successfully.")
+        except V20Error as e:
+            print(f"V20Error: {e}")
+            response = None
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            response = None
         return response
 
     def store_data(
@@ -289,15 +307,11 @@ class Galgoz(BaseModel):
         )
         self.fig.update_layout(
             legend=dict(
-            x=0,
-            y=1,
-            traceorder="normal",
-            font=dict(
-                family="sans-serif",
-                size=10,
-                color="black"
-            ),
-            bgcolor="rgba(255,255,255,0)",
+                x=0,
+                y=1,
+                traceorder="normal",
+                font=dict(family="sans-serif", size=10, color="black"),
+                bgcolor="rgba(255,255,255,0)",
             )
         )
         self.fig.update_traces(hoverinfo="y+x")

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Any, Optional
 from dotenv import load_dotenv
 import os
@@ -40,8 +40,7 @@ TIME_INCREMENT = {
 
 
 class Galgoz(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     account: str = "practice"
     account_id: str = os.getenv(

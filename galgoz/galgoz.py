@@ -1,20 +1,19 @@
-from pydoc import text
-import re
 from pydantic import BaseModel
 from typing import Any, Optional
 from dotenv import load_dotenv
 import os
 import pandas as pd
 import oandapyV20  # type: ignore
-import oandapyV20.endpoints.accounts as accounts
-import oandapyV20.endpoints.instruments as instruments
-import oandapyV20.endpoints.orders as orders
-import oandapyV20.endpoints.trades as trades
-from oandapyV20.exceptions import V20Error
-import plotly.graph_objects as go
+import oandapyV20.endpoints.accounts as accounts  # type: ignore
+import oandapyV20.endpoints.instruments as instruments  # type: ignore
+import oandapyV20.endpoints.orders as orders  # type: ignore
+import oandapyV20.endpoints.trades as trades  # type: ignore
+from oandapyV20.exceptions import V20Error  # type: ignore
+import plotly.graph_objects as go  # type: ignore
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
+from galgoz.plotting import candles
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -265,85 +264,18 @@ class Galgoz(BaseModel):
     def plot_candles(
         self,
         df: Optional[pd.DataFrame] = None,
-        price: str = "mid",
-        width: int = 2000,
-        height: int = 1000,
-    ):
+        **kwargs,
+    ) -> go.Figure:
         """
-        Plots candlestick data.
-
+        Plots candlestick chart using the provided DataFrame.
+        This function utilizes the `galgoz.plotting.candles.plot` method to generate
+        a candlestick chart from the given DataFrame.
         Args:
-            df (Optional[pd.DataFrame]): DataFrame containing the candlestick data.
-                Must include columns for time, open, high, low, and close prices.
-            price (str): Prefix for the price columns in the DataFrame. Defaults to "mid". Options are: "mid", "bid", or "ask".
-            width (int): Width of the plot. Defaults to 2000.
-            height (int): Height of the plot. Defaults to 1000.
-        Raises:
-            ValueError: If no DataFrame is provided.
+            df (Optional[pd.DataFrame]): The DataFrame containing the data to plot.
+                If None, the function will use a default DataFrame.
+            **kwargs: Additional keyword arguments to pass to `galgoz.plotting.candles.plot`.
         Returns:
-            None
+            go.Figure: The plotly figure object containing the candlestick chart.
         """
-        if df is None:
-            raise ValueError("No data received")
-        else:
-            df_plot = df.copy()
-            df_plot.reset_index(inplace=True)
-            df_plot["time"] = pd.to_datetime(df_plot["time"])
-            df_plot["time_str"] = df_plot["time"].dt.strftime(" %-b %d, '%y %H:%M")
-            # df_plot["time_str"] = [dt.strftime(x, "%Y-%m-%d %H:%M:%S") for x in df_plot.time]
-
-        self.fig = go.Figure(
-            data=[
-                go.Candlestick(
-                    x=df_plot.time_str,
-                    open=df_plot[f"{price}_o"],
-                    high=df_plot[f"{price}_h"],
-                    low=df_plot[f"{price}_l"],
-                    close=df_plot[f"{price}_c"],
-                    name=f"{self.instrument}",
-                    showlegend=True,
-                )
-            ]
-        )
-        self.fig.update_layout(
-            legend=dict(
-                x=0,
-                y=1,
-                traceorder="normal",
-                font=dict(family="sans-serif", size=10, color="black"),
-                bgcolor="rgba(255,255,255,0)",
-            )
-        )
-        self.fig.update_traces(hoverinfo="y+x")
-
-        self.fig.update_layout(
-            xaxis_title="Time",
-            yaxis_title="Price",
-            width=width,
-            height=height,
-            xaxis_rangeslider_visible=False,
-            hoverlabel=dict(bgcolor="rgba(255,255,255,0.5)"),
-            hovermode="x unified",
-        )
-
-        self.fig.update_xaxes(
-            showspikes=True,
-            spikecolor="green",
-            spikemode="across",
-            spikesnap="cursor",
-            showline=True,
-        )
-        self.fig.update_yaxes(
-            showspikes=True,
-            spikecolor="green",
-            spikemode="across",
-            spikesnap="cursor",
-            showline=True,
-        )
-
-        # Display only a percentage of the xticks based on the length of the dataset
-        num_ticks = len(df_plot) // 10  # Show 10% of the ticks
-        self.fig.update_xaxes(tickvals=df_plot.time_str[::num_ticks])
-        self.fig.update_layout()
-
+        self.fig = candles.plot(df, **kwargs)
         return self.fig

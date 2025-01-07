@@ -1,7 +1,7 @@
 from galgoz import Galgoz, DATA_FOLDER
 import pandas as pd
 from pathlib import Path
-from plotly import graph_objects as go
+from plotly import graph_objects as go # type: ignore
 
 gz = Galgoz()
 

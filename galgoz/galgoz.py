@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Any, Optional
+from typing import Any, List, Optional
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -14,6 +14,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
 from galgoz.plotting import candles
+from galgoz.indicators import trend
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -224,6 +225,8 @@ class Galgoz(BaseModel):
             response = None
         return response
 
+    #    def indicators(self, data: pd.DataFrame, indicators: dict) -> pd.DataFrame:
+
     def store_data(
         self,
         granularity: str = "H1",
@@ -263,6 +266,8 @@ class Galgoz(BaseModel):
     def plot_candles(
         self,
         df: Optional[pd.DataFrame] = None,
+        indicators: Optional[List] = None,
+        show: bool = True,
         **kwargs,
     ) -> go.Figure:
         """
@@ -276,5 +281,7 @@ class Galgoz(BaseModel):
         Returns:
             go.Figure: The plotly figure object containing the candlestick chart.
         """
-        self.fig = candles.plot(df, **kwargs)
+        self.fig = candles.plot(df=df, indicators=indicators, **kwargs)
+        if show:
+            self.fig.show()
         return self.fig

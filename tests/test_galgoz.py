@@ -1,7 +1,7 @@
 from galgoz import Galgoz, DATA_FOLDER
 import pandas as pd
 from pathlib import Path
-from plotly import graph_objects as go # type: ignore
+from plotly import graph_objects as go  # type: ignore
 
 gz = Galgoz()
 
@@ -20,16 +20,13 @@ def test_store_data():
     new_file = Path(DATA_FOLDER) / "file_for_testing.pkl"
     old_file.rename(new_file)
     assert Path(new_file).exists(), f"File {new_file} does not exist"
-    
+
     # Retreive the file_for_testing.pkl as a dataframe and check that the length is > 0
     df = pd.read_pickle(new_file)
     assert len(df) > 0, "Dataframe is empty"
-    
-    
+
+
 def test_plot_candles():
     df_plot = pd.read_pickle(Path(DATA_FOLDER) / "file_for_testing.pkl")
-    fig = gz.plot_candles(df_plot)
+    fig = gz.plot_candles(df_plot, show=False)
     assert isinstance(fig, go.Figure), "Plot is not a Plotly Figure"
-    
-        
-    

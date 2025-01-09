@@ -14,7 +14,6 @@ from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
 from galgoz.plotting import candles
-from galgoz.indicators import trend
 
 # Load env parameters (account details and tokens)
 load_dotenv()

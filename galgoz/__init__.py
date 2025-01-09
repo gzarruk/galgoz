@@ -1,2 +1,5 @@
 from .galgoz import *
-from .indicators import *
+# from .indicators.trend import sg
+
+
+# from .indicators import *

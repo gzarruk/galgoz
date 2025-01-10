@@ -1,3 +1,4 @@
-from .trend import sg
+from .trend import SG
+from .base import Indicator
 
-__all__ = ["sg"]
+__all__ = ["Indicator", "SG"]

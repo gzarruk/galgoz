@@ -22,13 +22,13 @@ class SG(Indicator):
         res = signal.savgol_filter(
             self.data.values, window_length=self.window, polyorder=self.order
         )
-        self.output = pd.Series(res, index=self.data.index)
+        self.output = pd.Series(res, index=self.data.index, name="SG")
 
 
 class MFI(Indicator):
     window: int = 14
 
-    def __init__(self, data: pd.Series, window: int = 14):
+    def __init__(self, data: pd.DataFrame, window: int = 14):
         super().__init__(name="Money Flow Index", data=data)
         self.window = window
         if data is not None:
@@ -45,4 +45,4 @@ class MFI(Indicator):
             self.data["volume"],
             timeperiod=self.window,
         )
-        self.output = pd.Series(res, index=self.data.index)
+        self.output = pd.Series(res, index=self.data.index, name="MFI")

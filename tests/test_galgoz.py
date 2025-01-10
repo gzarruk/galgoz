@@ -37,8 +37,26 @@ def test_candles_df():
     assert isinstance(df, pd.DataFrame), "Data is not a DataFrame"
     assert len(df) > 0, "Dataframe is empty"
     assert "time" in df.columns, "Column 'time' is not in the dataframe"
-    assert df["time"].apply(lambda x: isinstance(x, str)).all(), "Not all values in 'time' column are strings"
-    expected_columns = ["mid_c", "mid_o", "mid_l", "mid_h", "bid_c", "bid_o", "bid_l", "bid_h", "ask_c", "ask_o", "ask_l", "ask_h", "volume"]
+    assert (
+        df["time"].apply(lambda x: isinstance(x, str)).all()
+    ), "Not all values in 'time' column are strings"
+    expected_columns = [
+        "mid_c",
+        "mid_o",
+        "mid_l",
+        "mid_h",
+        "bid_c",
+        "bid_o",
+        "bid_l",
+        "bid_h",
+        "ask_c",
+        "ask_o",
+        "ask_l",
+        "ask_h",
+        "volume",
+    ]
     for column in expected_columns:
         assert column in df.columns, f"Column '{column}' is not in the dataframe"
-        assert df[column].apply(lambda x: isinstance(x, float)).all(), f"Not all values in '{column}' column are floats"
+        assert (
+            df[column].apply(lambda x: isinstance(x, float)).all()
+        ), f"Not all values in '{column}' column are floats"

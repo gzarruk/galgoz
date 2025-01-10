@@ -1,7 +1,7 @@
 import pandas as pd
 
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Optional, Union
+from pydantic import BaseModel, Field, field_validator
 
 
 class Indicator(BaseModel):
@@ -12,13 +12,16 @@ class Indicator(BaseModel):
     Indicator class for representing financial indicators.
     Attributes:
         name (str): The name of the indicator.
-        data (pd.Series | pd.DataFrame): The data associated with the indicator, which can be a pandas Series or DataFrame.
-        mode (str): Type of plot mode (from plotly.graph_objects). Options are "lines" (default), "markers", "lines+markers", "text", "lines+text", "markers+text", or "lines+markers+text".
-        row (int): The subplot row number associated with the indicator. Default is 1 (top row).
-        line (Optional[dict]): Optional dictionary containing line information for the indicator.
+        data (pd.Series | pd.DataFrame): The data associated with the indicator.
+        mode (str): Type of plot mode (from plotly.graph_objects).
+        row (int): The subplot row number associated with the indicator.
+        line (dict): Optional dictionary containing line formatting information.
+        marker (dict): Optional dictionary containing marker formatting information.
+        output (pd.Series): Indicator output data.
     """
+
     name: str = Field(title="Indicator name", description="The name of the indicator.")
-    data: Optional[pd.Series | pd.DataFrame] = Field(
+    data: Optional[Union[pd.Series, pd.DataFrame]] = Field(
         title="Indicator data",
         description="The index must be a Timestamp and the values floats or integers.",
         default=None,
@@ -36,28 +39,28 @@ class Indicator(BaseModel):
     line: dict = Field(
         title="Line information",
         description="Dictionary containing line formatting information. See plotly.graph_objects",
-        default=dict(color="blue", width=2),
+        default_factory=lambda: dict(color="blue", width=2),
     )
     marker: dict = Field(
         title="Marker information",
         description="Dictionary containing marker format information. See plotly.graph_objects",
-        default=dict(
-            size=5,  # Size of the markers
-            color="blue",  # Color of the markers
-            symbol="circle",
-        ),
+        default_factory=lambda: dict(size=5, color="blue", symbol="circle"),
     )
-
     output: Optional[pd.Series] = Field(title="Indicator output data", default=None)
 
-    @classmethod
-    def validate_output(cls, output: pd.Series) -> pd.Series:
+    @field_validator("output")
+    def validate_output_field(cls, output):
         if not isinstance(output.index, pd.DatetimeIndex):
             raise ValueError("The index of the output must be a pandas DatetimeIndex.")
         if not pd.api.types.is_float_dtype(output):
             raise ValueError("The values of the output must be of float type.")
         return output
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate_output
+    @field_validator("data")
+    def validate_data_field(cls, data):
+        if data is not None:
+            if not isinstance(data.index, pd.DatetimeIndex):
+                raise ValueError(
+                    "The index of the data must be a pandas DatetimeIndex."
+                )
+        return data

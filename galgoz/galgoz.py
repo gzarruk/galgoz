@@ -14,6 +14,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
 from galgoz.plotting import candles
+from galgoz.indicators.base import Indicator
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -265,6 +266,30 @@ class Galgoz(BaseModel):
             print(
                 f"No data to save for {self.instrument} at {granularity} granularity."
             )
+
+    def generate_indicators_list(self, *indicators: Indicator):
+        """
+        Generates a list of indicators with plotting metadata.
+
+        Args:
+            *indicators: Variable length argument list of Indicator types.
+
+        Returns:
+            list: A list of dictionaries, each containing the attributes and plotting metadata.
+        """
+        indicators_list = []
+        for indicator in indicators:
+            indicators_list.append(
+                {
+                    "name": indicator.name,
+                    "data": indicator.output,
+                    "mode": indicator.mode,
+                    "row": indicator.row,
+                    "line": indicator.line,
+                    "marker": indicator.marker,
+                }
+            )
+        return indicators_list
 
     def plot_candles(
         self,

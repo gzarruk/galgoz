@@ -64,3 +64,8 @@ class Indicator(BaseModel):
                     "The index of the data must be a pandas DatetimeIndex."
                 )
         return data
+
+    def _update_attributes(self, kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)

@@ -157,3 +157,4 @@ def _candle_plot_layout(width, height, df_plot, fig):
         showline=True,
         matches="x",
     )
+    fig.update_traces(xaxis="x1")  # This is to show the spikes across all subplots

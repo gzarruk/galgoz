@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from scipy import signal  # type: ignore
 from galgoz.indicators.base import Indicator
 from talib import MFI as mfi
@@ -7,13 +8,17 @@ from talib import MFI as mfi
 class SG(Indicator):
     window: int = 250
     order: int = 2
+    line_color: str = "blue"
 
-    def __init__(self, data: pd.Series, window: int = 250, order: int = 2):
+    def __init__(
+        self, data: pd.Series, window: int = window, order: int = order, **kwargs
+    ):
         super().__init__(name="Savitzky-Golay Filter", data=data)
         self.window = window
         self.order = order
         if data is not None:
             self.run()
+        self._update_attributes(kwargs)
 
     def __str__(self):
         return f"Savitzky-Golay Filter (window={self.window}, order={self.order})"

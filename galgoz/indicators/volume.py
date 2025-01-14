@@ -7,11 +7,12 @@ class MFI(Indicator):
     row: int = 2
     window: int = 14
 
-    def __init__(self, data: pd.DataFrame, window: int = 14):
+    def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
         super().__init__(name="Money Flow Index", data=data)
         self.window = window
         if data is not None:
             self.run()
+        self._update_attributes(kwargs)
 
     def __str__(self):
         return f"Money Flow Index (window={self.window})"

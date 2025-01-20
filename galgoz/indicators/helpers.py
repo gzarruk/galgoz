@@ -1,4 +1,4 @@
-from galgoz.indicators.base import Indicator
+from ..indicators.base import Indicator
 import pandas as pd
 
 

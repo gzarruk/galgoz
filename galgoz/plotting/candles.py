@@ -1,4 +1,3 @@
-from re import sub
 from typing import Optional
 import pandas as pd
 from typing import List

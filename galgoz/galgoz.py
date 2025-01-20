@@ -13,8 +13,8 @@ import plotly.graph_objects as go  # type: ignore
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
-from galgoz.plotting import candles
-from galgoz.indicators.base import Indicator
+from .plotting import candles
+from .indicators.base import Indicator
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -267,7 +267,7 @@ class Galgoz(BaseModel):
                 f"No data to save for {self.instrument} at {granularity} granularity."
             )
 
-    def generate_indicators_list(self, *indicators: Indicator):
+    def generate_indicators(self, *indicators: Indicator):
         """
         Generates a list of indicators with plotting metadata.
 
@@ -313,3 +313,19 @@ class Galgoz(BaseModel):
         if show:
             self.fig.show()
         return self.fig
+
+    # TODO: Method for generting signals.
+    # It should take the data from indicators or use them from the indicators library to add a column to the DataFrame containigndata with 1, 0, -1 values, BUY, HOLD, SELL.
+
+    def signals(self, df: pd.DataFrame, indicators: dict) -> pd.DataFrame:
+        """
+        Generates trading signals based on the provided indicators.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing the candle data.
+            indicators (dict): A dictionary containing the indicator data.
+
+        Returns:
+            pd.DataFrame: The DataFrame containing the trading signals.
+        """
+        return pd.DataFrame()

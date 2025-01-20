@@ -1,4 +1,5 @@
 from .galgoz import *
+
 # from .indicators.trend import sg
 
 

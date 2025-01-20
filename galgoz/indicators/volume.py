@@ -1,5 +1,5 @@
 import pandas as pd
-from galgoz.indicators.base import Indicator
+from ..indicators.base import Indicator
 from talib import MFI as mfi
 
 
@@ -8,7 +8,7 @@ class MFI(Indicator):
     window: int = 14
 
     def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="Money Flow Index", data=data)
+        super().__init__(name="MFI", data=data)
         self.window = window
         if data is not None:
             self.run()

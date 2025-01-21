@@ -46,7 +46,7 @@ class Indicator(BaseModel):
         description="Dictionary containing marker format information. See plotly.graph_objects",
         default_factory=lambda: dict(size=5, color="blue", symbol="circle"),
     )
-    output: Optional[pd.Series] = Field(title="Indicator output data", default=None)
+    output: pd.Series = Field(title="Indicator output data", default=pd.Series())
 
     @field_validator("output")
     def validate_output_field(cls, output):

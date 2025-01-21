@@ -15,6 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 from .plotting import candles
 from .indicators.base import Indicator
+from .backtesting import backtesting as bt
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -329,3 +330,7 @@ class Galgoz(BaseModel):
             pd.DataFrame: The DataFrame containing the trading signals.
         """
         return pd.DataFrame()
+
+
+if __name__ == "__main__":
+    pass

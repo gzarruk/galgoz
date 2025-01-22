@@ -13,7 +13,7 @@ import plotly.graph_objects as go  # type: ignore
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
-from galgoz.plotting import candles
+from galgoz.plotting.candles import plot as cplot
 from galgoz.indicators.base import Indicator
 
 # Load env parameters (account details and tokens)
@@ -309,7 +309,7 @@ class Galgoz(BaseModel):
         Returns:
             go.Figure: The plotly figure object containing the candlestick chart.
         """
-        self.fig = candles.plot(df=df, indicators=indicators, **kwargs)
+        self.fig = cplot(df=df, indicators=indicators, **kwargs)
         if show:
             self.fig.show()
         return self.fig

@@ -4,6 +4,7 @@ import pandas as pd
 from typing import List
 import plotly.graph_objects as go  # type: ignore
 from plotly.subplots import make_subplots  # type: ignore
+from ..utils import set_data_index_and_time_str
 
 
 def plot(
@@ -40,9 +41,7 @@ def plot(
         raise ValueError("No data received")
     else:
         df_plot = df.copy()
-        df_plot.reset_index(inplace=True)
-        df_plot["time"] = pd.to_datetime(df_plot["time"])
-        df_plot["time_str"] = df_plot["time"].dt.strftime(" %-b %d, '%y %H:%M")
+        set_data_index_and_time_str(df_plot)
 
     if instrument is None:
         instrument = "Instrument"

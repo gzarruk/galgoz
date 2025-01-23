@@ -10,7 +10,7 @@ class Hline(Indicator):
     def __init__(
         self, data: pd.Series | pd.DataFrame, yvalue: float = yvalue, **kwargs
     ):
-        super().__init__(name="Horizontal Line", data=data)
+        super().__init__(name="hline", data=data)
         self.yvalue = yvalue
         if data is not None:
             self.run()

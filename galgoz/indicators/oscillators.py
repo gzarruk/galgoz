@@ -1,15 +1,14 @@
-from galgoz.indicators.base import Indicator
+from ..indicators.base import Indicator
 import pandas as pd
 from talib import WILLR, RSI as rsi
 
 
-# TODO: Use **kwargs to allow changing the default plotting parameters
 class WPR(Indicator):
     row: int = 2
     window: int = 18
 
     def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="Williams %R", data=data)
+        super().__init__(name="WPR", data=data)
         self.window = window
         if data is not None:
             self.run()
@@ -33,7 +32,7 @@ class RSI(Indicator):
     window: int = 14
 
     def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="Relative Strength Index", data=data)
+        super().__init__(name="RSI", data=data)
         self.window = window
         if data is not None:
             self.run()

@@ -1,7 +1,7 @@
+import os
 from pydantic import BaseModel, ConfigDict
 from typing import Any, List, Optional
 from dotenv import load_dotenv
-import os
 import pandas as pd
 import oandapyV20  # type: ignore
 import oandapyV20.endpoints.accounts as accounts  # type: ignore
@@ -13,8 +13,10 @@ import plotly.graph_objects as go  # type: ignore
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
-from galgoz.plotting.candles import plot as cplot
-from galgoz.indicators.base import Indicator
+
+from .utils import generate_indicators
+from .plotting.candles import plot as cplot
+from .indicators.base import Indicator
 
 # Load env parameters (account details and tokens)
 load_dotenv()
@@ -267,29 +269,8 @@ class Galgoz(BaseModel):
                 f"No data to save for {self.instrument} at {granularity} granularity."
             )
 
-    def generate_indicators_list(self, *indicators: Indicator):
-        """
-        Generates a list of indicators with plotting metadata.
-
-        Args:
-            *indicators: Variable length argument list of Indicator types.
-
-        Returns:
-            list: A list of dictionaries, each containing the attributes and plotting metadata.
-        """
-        indicators_list = []
-        for indicator in indicators:
-            indicators_list.append(
-                {
-                    "name": indicator.name,
-                    "data": indicator.output,
-                    "mode": indicator.mode,
-                    "row": indicator.row,
-                    "line": indicator.line,
-                    "marker": indicator.marker,
-                }
-            )
-        return indicators_list
+    def indicators(self, *indicators: Indicator) -> pd.DataFrame:
+        return generate_indicators(*indicators)
 
     def plot_candles(
         self,

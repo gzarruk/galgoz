@@ -55,7 +55,13 @@ class Backtest(BaseModel):
             len(self.data.columns), "signals", np.nan, allow_duplicates=False
         )
 
+    def evalluate_indicators_for_row(self):
+        pass
+
     def signals(self):
+        pass
+
+    def entry_exit(self):
         pass
 
     def run(self):

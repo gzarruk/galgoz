@@ -55,6 +55,9 @@ class Backtest(BaseModel):
             len(self.data.columns), "signals", np.nan, allow_duplicates=False
         )
 
+    def signals(self):
+        pass
+
     def run(self):
         if len(self.data) == 0:
             print("No data provided for backtest")

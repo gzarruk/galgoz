@@ -11,7 +11,7 @@ class SG(Indicator):
     line_color: str = "blue"
 
     def __init__(
-        self, data: pd.Series, window: int = window, order: int = order, **kwargs
+        self, data: pd.DataFrame, window: int = window, order: int = order, **kwargs
     ):
         super().__init__(name="SG", data=data)
         self.window = window
@@ -25,6 +25,10 @@ class SG(Indicator):
 
     def run(self):
         res = signal.savgol_filter(
-            self.data.values, window_length=self.window, polyorder=self.order
+            self.data.mid_c.values, window_length=self.window, polyorder=self.order
         )
         self.output = pd.Series(res, index=self.data.index, name="SG")
+
+    def update(self, new_data: pd.DataFrame | None):
+        self.data = new_data
+        self.run()

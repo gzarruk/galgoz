@@ -45,7 +45,7 @@ class Backtest(BaseModel):
                 "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R"
             )
             self.indicators = [
-                SG(data=self.data["mid_c"].iloc[: self.init_rows]),
+                SG(data=self.data.iloc[: self.init_rows]),
                 WPR(data=self.data.iloc[: self.init_rows]),
             ]
             # Create columns for the indicators and insert the initial values
@@ -54,15 +54,6 @@ class Backtest(BaseModel):
         self.data.insert(
             len(self.data.columns), "signals", np.nan, allow_duplicates=False
         )
-
-    def evalluate_indicators_for_row(self):
-        pass
-
-    def signals(self):
-        pass
-
-    def entry_exit(self):
-        pass
 
     def run(self):
         if len(self.data) == 0:

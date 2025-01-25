@@ -5,6 +5,7 @@ import numpy as np
 from . import DATA_FOLDER
 from .utils import set_data_index_and_time_str
 from .indicators import Indicator, SG, WPR
+import time
 
 
 class Backtest(BaseModel):
@@ -39,7 +40,7 @@ class Backtest(BaseModel):
         if len(self.data) == 0:
             # Load GBP_JPY_H1.pkl file from DATA_FOLDER
             self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl")
-            set_data_index_and_time_str(self.data)
+        set_data_index_and_time_str(self.data)
         if len(self.indicators) == 0:
             print(
                 "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R"
@@ -48,15 +49,35 @@ class Backtest(BaseModel):
                 SG(data=self.data.iloc[: self.init_rows]),
                 WPR(data=self.data.iloc[: self.init_rows]),
             ]
-            # Create columns for the indicators and insert the initial values
+        # Create columns for the indicators, signals, entry price, sl and tp and insert the initial values as NaNs
         for indicator in self.indicators:
             self.data[indicator.name] = indicator.output
         self.data.insert(
             len(self.data.columns), "signals", np.nan, allow_duplicates=False
         )
+        self.data.insert(
+            len(self.data.columns), "entry", np.nan, allow_duplicates=False
+        )
+        self.data.insert(
+            len(self.data.columns), "stop_loss", np.nan, allow_duplicates=False
+        )
+        self.data.insert(
+            len(self.data.columns), "take_profit", np.nan, allow_duplicates=False
+        )
 
     def run(self):
+        start_time = time.time()
         if len(self.data) == 0:
             print("No data provided for backtest")
             return None
         print(f"Running backtest on {self.strategy}")
+        for i in range(self.init_rows, len(self.data)):
+            data_slice = self.data.iloc[: i + 1]
+            # Update indicators and main DataFrame for each time-step
+            for indicator in self.indicators:
+                indicator.update(data_slice)
+                last_output = indicator.output.iloc[-1]
+                self.data.at[self.data.index[i], indicator.name] = last_output
+        print(
+            f"Backtest completed in {time.time()-start_time:.2f} seconds and evaluated {len(self.data)-self.init_rows} time-steps"
+        )

@@ -1,12 +1,11 @@
 import pandas as pd
 
-from typing import Optional, Union
-from pydantic import BaseModel, Field, field_validator
+from typing import Optional
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class Indicator(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     """
     Indicator class for representing financial indicators.

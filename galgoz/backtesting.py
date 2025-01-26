@@ -39,7 +39,7 @@ class Backtest(BaseModel):
         print(f"Initializing backtest for {self.strategy}")
         if len(self.data) == 0:
             # Load GBP_JPY_H1.pkl file from DATA_FOLDER
-            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl")
+            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl").iloc[-5000:]
         set_data_index_and_time_str(self.data)
         if len(self.indicators) == 0:
             print(
@@ -64,6 +64,9 @@ class Backtest(BaseModel):
         self.data.insert(
             len(self.data.columns), "take_profit", np.nan, allow_duplicates=False
         )
+
+    def signals(self):
+        pass
 
     def run(self):
         start_time = time.time()

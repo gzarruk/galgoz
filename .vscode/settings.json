@@ -2,5 +2,8 @@
   "python.testing.pytestEnabled": true,
   "python.testing.pytestArgs": [".", "tests"],
   "python.testing.unittestEnabled": false,
-  "python.envFile": "${workspaceFolder}/.env"
+  "python.envFile": "${workspaceFolder}/.env",
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  }
 }

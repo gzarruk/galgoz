@@ -5,7 +5,7 @@ from talib import WILLR, RSI as rsi
 
 class WPR(Indicator):
     row: int = 2
-    window: int = 18
+    window: int = 14
 
     def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
         super().__init__(name="WPR", data=data)
@@ -25,6 +25,10 @@ class WPR(Indicator):
             timeperiod=self.window,
         )
         self.output = pd.Series(res, index=self.data.index, name="WPR")
+
+    def update(self, new_data: pd.DataFrame | None):
+        self.data = new_data
+        self.run()
 
 
 class RSI(Indicator):
@@ -47,3 +51,7 @@ class RSI(Indicator):
             timeperiod=self.window,
         )
         self.output = pd.Series(res, index=self.data.index, name="RSI")
+
+    def update(self, new_data: pd.DataFrame | None):
+        self.data = new_data
+        self.run()

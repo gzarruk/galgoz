@@ -66,7 +66,8 @@ class Backtest(BaseModel):
         )
 
     def signals(self):
-        pass
+
+        return None
 
     def run(self):
         start_time = time.time()
@@ -81,6 +82,9 @@ class Backtest(BaseModel):
                 indicator.update(data_slice)
                 last_output = indicator.output.iloc[-1]
                 self.data.at[self.data.index[i], indicator.name] = last_output
+        if self.data["signals"].isna().all():
+            print("No signals were generated during the backtest.")
+
         print(
             f"Backtest completed in {time.time()-start_time:.2f} seconds and evaluated {len(self.data)-self.init_rows} time-steps"
         )

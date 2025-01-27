@@ -81,7 +81,9 @@ class Indicator(BaseModel):
         """
         This method should be implemented by subclasses to update the indicator with new data and recalculate the output attribute.
         """
+        # self.data = new_data
+        # raise NotImplementedError(
+        #     "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
+        # )
         self.data = new_data
-        raise NotImplementedError(
-            "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
-        )
+        self.run()

@@ -71,7 +71,7 @@ class Backtest(BaseModel):
 
         The entry logic is applied stepwise, i.e. for each row of the dataframe. BUY signal are represented by 1 and SELL signals by -1. No signal is represented by 0.
 
-        Galgoz Standard strategy:
+        Galgoz Standard Entries:
         SELL if:
             - Close price is above SG (window=250).
             - WPR crossover overbought limit.
@@ -96,6 +96,17 @@ class Backtest(BaseModel):
                 if self.data["SG"].iloc[row] - self.data["SG"].iloc[row - 1] > 0:
                     return 1
         return 0
+
+    def exits(self, row: int):
+        """
+        Method to generate exit signals based on the indicators. Backtest is provided with a list of default indicators. A default strategy (Galgoz Standard) is used is used to generate entries if none is provided.
+
+        The exit logic is applied stepwise, i.e. for each row of the dataframe. BUY signal are represented by 1 and SELL signals by -1. No signal is represented by 0.
+
+        Galgoz Standard Exits:
+        TO BE IMPLEMENTED
+        """
+        pass
 
     def run(self):
         start_time = time.time()

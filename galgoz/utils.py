@@ -22,6 +22,7 @@ def generate_indicators(*indicators: Indicator):
                 "row": indicator.row,
                 "line": indicator.line,
                 "marker": indicator.marker,
+                "ouput": indicator.output,
             }
         )
     return indicators_list

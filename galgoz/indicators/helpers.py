@@ -22,6 +22,6 @@ class Hline(Indicator):
             [self.yvalue] * len(self.data), index=self.data.index, name="hline"
         )
 
-    def update(self, new_data: pd.DataFrame, **kwargs):
+    def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
         self.run()

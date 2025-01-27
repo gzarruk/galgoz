@@ -43,7 +43,7 @@ class Backtest(BaseModel):
         set_data_index_and_time_str(self.data)
         if len(self.indicators) == 0:
             print(
-                "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R"
+                "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R.\n---"
             )
             self.indicators = [
                 SG(data=self.data.iloc[: self.init_rows]),
@@ -65,15 +65,44 @@ class Backtest(BaseModel):
             len(self.data.columns), "take_profit", np.nan, allow_duplicates=False
         )
 
-    def signals(self):
-        pass
+    def entry(self, row: int):
+        """
+        Method to generate signals based on the indicators. Backtest is provided with a list of default indicators. A default strategy (Galgoz Standard) is used is used to generate entries if none is provided.
+
+        The entry logic is applied stepwise, i.e. for each row of the dataframe. BUY signal are represented by 1 and SELL signals by -1. No signal is represented by 0.
+
+        Galgoz Standard strategy:
+        SELL if:
+            - Close price is above SG (window=250).
+            - WPR crossover overbought limit.
+            - SG slope is negative.
+        BUY if:
+            - Close price is below SG (window=250).
+            - WPR crossover oversold limit.
+            - SG slope is positive.
+        """
+        if self.data["mid_c"].iloc[row] > self.data["SG"].iloc[row]:
+            if (
+                self.data["WPR"].iloc[row] > -10
+                and self.data["WPR"].iloc[row - 1] < -10
+            ):
+                if self.data["SG"].iloc[row] - self.data["SG"].iloc[row - 1] < 0:
+                    return -1
+        if self.data["mid_c"].iloc[row] < self.data["SG"].iloc[row]:
+            if (
+                self.data["WPR"].iloc[row] < -90
+                and self.data["WPR"].iloc[row - 1] > -90
+            ):
+                if self.data["SG"].iloc[row] - self.data["SG"].iloc[row - 1] > 0:
+                    return 1
+        return 0
 
     def run(self):
         start_time = time.time()
         if len(self.data) == 0:
-            print("No data provided for backtest")
+            print("No data provided for backtest\n---")
             return None
-        print(f"Running backtest on {self.strategy}")
+        print(f"Running backtest on {self.strategy}\n---")
         for i in range(self.init_rows, len(self.data)):
             data_slice = self.data.iloc[: i + 1]
             # Update indicators and main DataFrame for each time-step
@@ -81,6 +110,15 @@ class Backtest(BaseModel):
                 indicator.update(data_slice)
                 last_output = indicator.output.iloc[-1]
                 self.data.at[self.data.index[i], indicator.name] = last_output
+            # Generate signals
+            self.data.at[self.data.index[i], "signals"] = self.entry(i)
+        if self.data["signals"].isna().all():
+            print("No signals were generated during the backtest.\n---")
+        else:
+            print(f"BUY signals generated: {len(self.data[self.data['signals'] == 1])}")
+            print(
+                f"SELL signals generated: {len(self.data[self.data['signals'] == -1])}"
+            )
         print(
             f"Backtest completed in {time.time()-start_time:.2f} seconds and evaluated {len(self.data)-self.init_rows} time-steps"
         )

@@ -70,7 +70,7 @@ class SuperTrend(Indicator):
         multiplier: float = multiplier,
         **kwargs,
     ):
-        super().__init__(name="Supertrend", data=data)
+        super().__init__(name=self.__class__.__name__, data=data)
         self.atr_period = atr_period
         self.multiplier = multiplier
         if data is not None:

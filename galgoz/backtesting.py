@@ -2,9 +2,11 @@ from typing import List
 from pydantic import BaseModel, Field, ConfigDict
 import pandas as pd
 import numpy as np
+
+from galgoz.indicators.trend import SuperTrend
 from . import DATA_FOLDER
 from .utils import set_data_index_and_time_str
-from .indicators import Indicator, HMA, MFI
+from .indicators import Indicator, MFI
 import time
 
 
@@ -44,14 +46,12 @@ class Backtest(BaseModel):
         print(f"Initializing backtest for {self.strategy}")
         if len(self.data) == 0:
             # Load GBP_JPY_H1.pkl file from DATA_FOLDER
-            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl").iloc[-5000:]
+            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl").iloc[-1000:]
         set_data_index_and_time_str(self.data)
         if len(self.indicators) == 0:
-            print(
-                "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R.\n---"
-            )
+            print("No indicators provided ... using default strategy indicators.\n---")
             self.indicators = [
-                HMA(data=self.data.iloc[: self.init_rows]),
+                SuperTrend(data=self.data.iloc[: self.init_rows]),
                 MFI(data=self.data.iloc[: self.init_rows], window=11),
             ]
         # Create columns for the indicators, signals, entry price, sl and tp and insert the initial values as NaNs
@@ -79,10 +79,10 @@ class Backtest(BaseModel):
         Galgoz Standard Entries:
         """
         # BUY Signals
-        if self.data["HMA"].iloc[row] - self.data["HMA"].iloc[row - 1] > 0:
+        if self.data["mid_c"].iloc[row] > self.data["SuperTrend"].iloc[row]:
             if self.data["MFI"].iloc[row] < 25 and self.data["MFI"].iloc[row - 1] > 25:
                 return 1
-        elif self.data["HMA"].iloc[row] - self.data["HMA"].iloc[row - 1] < 0:
+        elif self.data["mid_c"].iloc[row] < self.data["SuperTrend"].iloc[row]:
             if self.data["MFI"].iloc[row] > 75 and self.data["MFI"].iloc[row - 1] < 75:
                 return -1
         else:
@@ -106,6 +106,7 @@ class Backtest(BaseModel):
             return None
         print(f"Running backtest on {self.strategy}\n---")
         for i in range(self.init_rows, len(self.data)):
+            print(f"Step {i}")
             data_slice = self.data.iloc[: i + 1]
             # Update indicators and main DataFrame for each time-step
             for indicator in self.indicators:

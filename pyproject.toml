@@ -26,6 +26,7 @@ whittaker-eilers = "^0.2.0"
 bash-kernel = "^0.9.3"
 ta = "^0.11.0"
 ta-lib = "^0.6.0"
+pandas-ta = "^0.3.14b0"
 
 
 [build-system]

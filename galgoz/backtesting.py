@@ -2,12 +2,15 @@ from typing import List
 from pydantic import BaseModel, Field, ConfigDict
 import pandas as pd
 import numpy as np
+
+from galgoz.indicators.trend import SuperTrend
 from . import DATA_FOLDER
 from .utils import set_data_index_and_time_str
-from .indicators import Indicator, SG, WPR
+from .indicators import Indicator, MFI
 import time
 
 
+# TODO: Modify to vectorized backtest and don't account for repainting indicators.
 class Backtest(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -30,6 +33,11 @@ class Backtest(BaseModel):
         description="Backtesting is done recursevely, i.e. one time-step at a time. Thefore, during the initialization phase, the model needs to be initialized with a certain number of rows. This is the number of rows to initialize.",
         default=500,
     )
+    recursive: bool = Field(
+        title="Recursive backtest",
+        description="If True, the backtest is done recursively, i.e. one time-step at a time. If False, the backtest is done in batch.",
+        default=True,
+    )
 
     def __str__(self):
         return f"Backtest for {self.strategy} with the indicators: {self.indicators}"
@@ -39,15 +47,13 @@ class Backtest(BaseModel):
         print(f"Initializing backtest for {self.strategy}")
         if len(self.data) == 0:
             # Load GBP_JPY_H1.pkl file from DATA_FOLDER
-            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl").iloc[-5000:]
+            self.data = pd.read_pickle(DATA_FOLDER / "GBP_JPY_H1.pkl").iloc[-1000:]
         set_data_index_and_time_str(self.data)
         if len(self.indicators) == 0:
-            print(
-                "No indicators provided. Using default indicators: Savitzky-Golay filter and Williams %R.\n---"
-            )
+            print("No indicators provided ... using default strategy indicators.\n---")
             self.indicators = [
-                SG(data=self.data.iloc[: self.init_rows]),
-                WPR(data=self.data.iloc[: self.init_rows]),
+                SuperTrend(data=self.data.iloc[: self.init_rows]),
+                MFI(data=self.data.iloc[: self.init_rows], window=11),
             ]
         # Create columns for the indicators, signals, entry price, sl and tp and insert the initial values as NaNs
         for indicator in self.indicators:
@@ -71,31 +77,28 @@ class Backtest(BaseModel):
 
         The entry logic is applied stepwise, i.e. for each row of the dataframe. BUY signal are represented by 1 and SELL signals by -1. No signal is represented by 0.
 
-        Galgoz Standard strategy:
-        SELL if:
-            - Close price is above SG (window=250).
-            - WPR crossover overbought limit.
-            - SG slope is negative.
-        BUY if:
-            - Close price is below SG (window=250).
-            - WPR crossover oversold limit.
-            - SG slope is positive.
+        Galgoz Standard Entries:
         """
-        if self.data["mid_c"].iloc[row] > self.data["SG"].iloc[row]:
-            if (
-                self.data["WPR"].iloc[row] > -10
-                and self.data["WPR"].iloc[row - 1] < -10
-            ):
-                if self.data["SG"].iloc[row] - self.data["SG"].iloc[row - 1] < 0:
-                    return -1
-        if self.data["mid_c"].iloc[row] < self.data["SG"].iloc[row]:
-            if (
-                self.data["WPR"].iloc[row] < -90
-                and self.data["WPR"].iloc[row - 1] > -90
-            ):
-                if self.data["SG"].iloc[row] - self.data["SG"].iloc[row - 1] > 0:
-                    return 1
-        return 0
+        # BUY Signals
+        if self.data["mid_c"].iloc[row] > self.data["SuperTrend"].iloc[row]:
+            if self.data["MFI"].iloc[row] < 25 and self.data["MFI"].iloc[row - 1] > 25:
+                return 1
+        elif self.data["mid_c"].iloc[row] < self.data["SuperTrend"].iloc[row]:
+            if self.data["MFI"].iloc[row] > 75 and self.data["MFI"].iloc[row - 1] < 75:
+                return -1
+        else:
+            return 0
+
+    def exit(self, row: int):
+        """
+        Method to generate exit signals based on the indicators. Backtest is provided with a list of default indicators. A default strategy (Galgoz Standard) is used is used to generate entries if none is provided.
+
+        The exit logic is applied stepwise, i.e. for each row of the dataframe. BUY signal are represented by 1 and SELL signals by -1. No signal is represented by 0.
+
+        Galgoz Standard Exits:
+        TO BE IMPLEMENTED
+        """
+        pass
 
     def run(self):
         start_time = time.time()

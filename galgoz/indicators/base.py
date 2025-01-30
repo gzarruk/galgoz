@@ -45,7 +45,9 @@ class Indicator(BaseModel):
         description="Dictionary containing marker format information. See plotly.graph_objects",
         default_factory=lambda: dict(size=5, color="blue", symbol="circle"),
     )
-    output: Optional[pd.Series] = Field(title="Indicator output data", default=None)
+    output: Optional[pd.Series | pd.DataFrame] = Field(
+        title="Indicator output data", default=None
+    )
 
     @field_validator("output")
     def validate_output_field(cls, output):
@@ -68,6 +70,8 @@ class Indicator(BaseModel):
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+            if key == "line_color":
+                self.line["color"] = value
 
     def run(self):
         """
@@ -81,7 +85,9 @@ class Indicator(BaseModel):
         """
         This method should be implemented by subclasses to update the indicator with new data and recalculate the output attribute.
         """
+        # self.data = new_data
+        # raise NotImplementedError(
+        #     "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
+        # )
         self.data = new_data
-        raise NotImplementedError(
-            "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
-        )
+        self.run()

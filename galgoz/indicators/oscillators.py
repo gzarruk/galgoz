@@ -55,3 +55,25 @@ class RSI(Indicator):
     def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
         self.run()
+
+
+class QQE(Indicator):
+    row: int = 2
+    window: int = 14
+
+    def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
+        super().__init__(name=self.__class__.__name__, data=data)
+        self.window = window
+        if data is not None:
+            self.run()
+        self._update_attributes(kwargs)
+
+    def __str__(self):
+        return f"QQE (window={self.window})"
+
+    def run(self):
+        pass
+
+    def update(self, new_data: pd.DataFrame | None):
+        self.data = new_data
+        self.run()

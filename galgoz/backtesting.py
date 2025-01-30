@@ -10,6 +10,7 @@ from .indicators import Indicator, MFI
 import time
 
 
+# TODO: Modify to vectorized backtest and don't account for repainting indicators.
 class Backtest(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -106,7 +107,6 @@ class Backtest(BaseModel):
             return None
         print(f"Running backtest on {self.strategy}\n---")
         for i in range(self.init_rows, len(self.data)):
-            print(f"Step {i}")
             data_slice = self.data.iloc[: i + 1]
             # Update indicators and main DataFrame for each time-step
             for indicator in self.indicators:

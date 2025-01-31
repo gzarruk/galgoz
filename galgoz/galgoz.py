@@ -58,6 +58,7 @@ class Galgoz(BaseModel):
         )
     )
     instrument: str = "GBP_JPY"
+    data: pd.DataFrame = pd.DataFrame()
     fig: Optional[go.Figure] = None
 
     def fetch_instruments(self):

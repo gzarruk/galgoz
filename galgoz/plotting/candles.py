@@ -91,18 +91,33 @@ def add_indicators_to_plot(indicators, fig):
     if indicators is not None:
         for indicator in indicators:
             xdata = pd.Series(indicator["data"].index).dt.strftime(" %-b %d, '%y %H:%M")
-            fig.add_trace(
-                go.Scatter(
-                    x=xdata,
-                    y=indicator["data"],
-                    mode=indicator["mode"],
-                    line=indicator["line"],
-                    marker=indicator["marker"],
-                    name=indicator["name"],
-                ),
-                row=indicator["row"],
-                col=1,
-            )
+            if isinstance(indicator["output"], pd.DataFrame):
+                for column in indicator["output"].columns:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=xdata,
+                            y=indicator["output"][column],
+                            mode=indicator["mode"],
+                            line=indicator["line"],
+                            marker=indicator["marker"],
+                            name=f"{indicator['name']} ({column})",
+                        ),
+                        row=indicator["row"],
+                        col=1,
+                    )
+            else:
+                fig.add_trace(
+                    go.Scatter(
+                        x=xdata,
+                        y=indicator["output"],
+                        mode=indicator["mode"],
+                        line=indicator["line"],
+                        marker=indicator["marker"],
+                        name=indicator["name"],
+                    ),
+                    row=indicator["row"],
+                    col=1,
+                )
             fig.update_yaxes(
                 title_text=indicator["name"],
                 row=indicator["row"],

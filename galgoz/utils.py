@@ -17,12 +17,12 @@ def generate_indicators(*indicators: Indicator):
         indicators_list.append(
             {
                 "name": indicator.name,
-                "data": indicator.output,
+                "data": indicator.data,
                 "mode": indicator.mode,
                 "row": indicator.row,
                 "line": indicator.line,
                 "marker": indicator.marker,
-                "ouput": indicator.output,
+                "output": indicator.output,
             }
         )
     return indicators_list

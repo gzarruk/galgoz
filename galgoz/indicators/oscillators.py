@@ -85,11 +85,9 @@ class QQE(Indicator):
         return f"Quantitative Qualitative Estimation (length={self.length})"
 
     def run(self):
-        result = qqe(
-            self.data, length=self.length, smooth=self.smooth, factor=self.factor
-        )
+        result = qqe(self.data, length=self.length, smooth=self.smooth, factor=self.factor)
         self.output = result[["qqe_fast", "qqe_slow"]]
-
+        
     def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
         self.run()

@@ -92,14 +92,14 @@ def add_indicators_to_plot(indicators, fig):
         for indicator in indicators:
             xdata = pd.Series(indicator["data"].index).dt.strftime(" %-b %d, '%y %H:%M")
             if isinstance(indicator["output"], pd.DataFrame):
-                for column in indicator["output"].columns:
+                for i, column in enumerate(indicator["output"].columns):
                     fig.add_trace(
                         go.Scatter(
                             x=xdata,
                             y=indicator["output"][column],
-                            mode=indicator["mode"],
-                            line=indicator["line"],
-                            marker=indicator["marker"],
+                            mode=indicator["mode"][i],
+                            line=indicator["line"][i],
+                            marker=indicator["marker"][i],
                             name=f"{indicator['name']} ({column})",
                         ),
                         row=indicator["row"],
@@ -110,10 +110,10 @@ def add_indicators_to_plot(indicators, fig):
                     go.Scatter(
                         x=xdata,
                         y=indicator["output"],
-                        mode=indicator["mode"],
-                        line=indicator["line"],
-                        marker=indicator["marker"],
-                        name=indicator["name"],
+                        mode=indicator["mode"][0],
+                        line=indicator["line"][0],
+                        marker=indicator["marker"][0],
+                        name=indicator["name"][0],
                     ),
                     row=indicator["row"],
                     col=1,

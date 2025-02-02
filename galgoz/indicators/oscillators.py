@@ -64,6 +64,12 @@ class QQE(Indicator):
     length: int = 8
     smooth: int = 1
     factor: float = 1.618
+    mode: list = ["lines", "lines"]
+    line: list = [dict(color="green", width=2), dict(color="maroon", width=2)]
+    marker: list = [
+        dict(size=5, color="blue", symbol="circle"),
+        dict(size=5, color="blue", symbol="circle"),
+    ]
 
     def __init__(
         self,
@@ -85,9 +91,11 @@ class QQE(Indicator):
         return f"Quantitative Qualitative Estimation (length={self.length})"
 
     def run(self):
-        result = qqe(self.data, length=self.length, smooth=self.smooth, factor=self.factor)
+        result = qqe(
+            self.data, length=self.length, smooth=self.smooth, factor=self.factor
+        )
         self.output = result[["qqe_fast", "qqe_slow"]]
-        
+
     def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
         self.run()

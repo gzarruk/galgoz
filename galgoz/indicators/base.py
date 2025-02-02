@@ -30,20 +30,20 @@ class Indicator(BaseModel):
         description="The plot can have multiple rows, where row 1 is the main plot, typically a Candlestic plot. Default is 1 (main plot).",
         default=1,
     )
-    mode: str = Field(
+    mode: list[str] = Field(
         title="Plot mode",
-        description='Type of plot (from plotly.graph_objects). Options are "lines" (default), "markers", "lines+markers", "text", "lines+text", "markers+text", or "lines+markers+text".',
-        default="lines",
+        description='List of plot modes (from plotly.graph_objects). Each entry corresponds to a column in the output. Options are "lines" (default), "markers", "lines+markers", "text", "lines+text", "markers+text", or "lines+markers+text".',
+        default_factory=lambda: ["lines"],
     )
-    line: dict = Field(
+    line: list[dict] = Field(
         title="Line information",
-        description="Dictionary containing line formatting information. See plotly.graph_objects",
-        default_factory=lambda: dict(color="blue", width=2),
+        description="List of dictionaries containing line formatting information. Each entry corresponds to a column in the output. See plotly.graph_objects",
+        default_factory=lambda: [dict(color="blue", width=2)],
     )
-    marker: dict = Field(
+    marker: list[dict] = Field(
         title="Marker information",
-        description="Dictionary containing marker format information. See plotly.graph_objects",
-        default_factory=lambda: dict(size=5, color="blue", symbol="circle"),
+        description="List of dictionaries containing marker format information. Each entry corresponds to a column in the output. See plotly.graph_objects",
+        default_factory=lambda: [dict(size=5, color="blue", symbol="circle")],
     )
     output: Optional[pd.Series | pd.DataFrame] = Field(
         title="Indicator output data", default=None
@@ -85,9 +85,6 @@ class Indicator(BaseModel):
         """
         This method should be implemented by subclasses to update the indicator with new data and recalculate the output attribute.
         """
-        # self.data = new_data
-        # raise NotImplementedError(
-        #     "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
-        # )
-        self.data = new_data
-        self.run()
+        raise NotImplementedError(
+            "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
+        )

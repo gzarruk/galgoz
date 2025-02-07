@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy import signal  # type: ignore
 from ..indicators.base import Indicator
+import talib
 
 
 class SG(Indicator):
@@ -135,3 +136,62 @@ class SuperTrend(Indicator):
     def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
         self.run()
+
+
+def supertrend(data: pd.DataFrame, period: int = 14, multiplier: float = 6.5):
+    """
+    Calculate the Supertrend indicator. Adapted from https://medium.datadriveninvestor.com/superfast-supertrend-6269a3af0c2a
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the data.
+        atr_period (int, optional): The ATR period. Defaults to 14.
+        multiplier (float, optional): The multiplier. Defaults to 6.5.
+
+    Returns:
+        pd.Series: The Supertrend indicator.
+    """
+    high = data["mid_h"]
+    low = data["mid_l"]
+    close = data["mid_c"]
+    avg_price = talib.MEDPRICE(high.values.astype(float), low.values.astype(float))
+    atr = talib.ATR(
+        high.values.astype(float),
+        low.values.astype(float),
+        close.values.astype(float),
+        period,
+    )
+    upper, lower = get_basic_bands(avg_price, atr, multiplier)
+    return get_final_bands(close, upper, lower)
+
+
+def get_basic_bands(med_price, atr, multiplier):
+    matr = multiplier * atr
+    upper = med_price + matr
+    lower = med_price - matr
+    return upper, lower
+
+
+def get_final_bands(close, upper, lower):
+    trend = pd.Series(np.full(close.shape, np.nan), index=close.index)
+    dir_ = pd.Series(np.full(close.shape, 1), index=close.index)
+    long = pd.Series(np.full(close.shape, np.nan), index=close.index)
+    short = pd.Series(np.full(close.shape, np.nan), index=close.index)
+
+    for i in range(1, close.shape[0]):
+        if close.iloc[i] > upper.iloc[i - 1]:
+            dir_.iloc[i] = 1
+        elif close.iloc[i] < lower.iloc[i - 1]:
+            dir_.iloc[i] = -1
+        else:
+            dir_.iloc[i] = dir_.iloc[i - 1]
+            if dir_.iloc[i] > 0 and lower.iloc[i] < lower.iloc[i - 1]:
+                lower.iloc[i] = lower.iloc[i - 1]
+            if dir_.iloc[i] < 0 and upper.iloc[i] > upper.iloc[i - 1]:
+                upper.iloc[i] = upper.iloc[i - 1]
+
+        if dir_.iloc[i] > 0:
+            trend.iloc[i] = long.iloc[i] = lower.iloc[i]
+        else:
+            trend.iloc[i] = short.iloc[i] = upper.iloc[i]
+
+    return trend, dir_, long, short

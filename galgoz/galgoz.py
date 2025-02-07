@@ -171,6 +171,7 @@ class Galgoz(BaseModel):
         float_columns = [col for col in df.columns if col not in ["time", "complete"]]
         df[float_columns] = df[float_columns].astype(float)
         df["complete"] = df["complete"].astype(int)
+        df["volume"] = df["volume"].astype(int)
         return df
 
     def create_order(self, units: str, type: str = "MARKET"):

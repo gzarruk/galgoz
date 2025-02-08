@@ -3,6 +3,7 @@ import numpy as np
 from scipy import signal  # type: ignore
 from ..indicators.base import Indicator
 import talib
+from vectorbt import IndicatorFactory as IF
 
 
 class SG(Indicator):
@@ -138,7 +139,13 @@ class SuperTrend(Indicator):
         self.run()
 
 
-def supertrend(data: pd.DataFrame, period: int = 14, multiplier: float = 6.5):
+def supertrend(
+    high: pd.Series,
+    low: pd.Series,
+    close: pd.Series,
+    period: int = 14,
+    multiplier: float = 6.5,
+):
     """
     Calculate the Supertrend indicator. Adapted from https://medium.datadriveninvestor.com/superfast-supertrend-6269a3af0c2a
 
@@ -150,18 +157,22 @@ def supertrend(data: pd.DataFrame, period: int = 14, multiplier: float = 6.5):
     Returns:
         pd.Series: The Supertrend indicator.
     """
-    high = data["mid_h"]
-    low = data["mid_l"]
-    close = data["mid_c"]
-    avg_price = talib.MEDPRICE(high.values.astype(float), low.values.astype(float))
+    # USe squeeze to convert 2D array to 1D. This is necessary for talib and vectorbt to work well together
+    high_ = pd.Series(np.squeeze(high))
+    low_ = pd.Series(np.squeeze(low))
+    close_ = pd.Series(np.squeeze(close))
+    avg_price = talib.MEDPRICE(high_.values.astype(float), low_.values.astype(float))
     atr = talib.ATR(
-        high.values.astype(float),
-        low.values.astype(float),
-        close.values.astype(float),
+        high_.values.astype(float),
+        low_.values.astype(float),
+        close_.values.astype(float),
         period,
     )
     upper, lower = get_basic_bands(avg_price, atr, multiplier)
-    return get_final_bands(close, upper, lower)
+    upper = pd.Series(upper, index=close_.index)
+    lower = pd.Series(lower, index=close_.index)
+    trend, direction, long_, short = get_final_bands(close_, upper, lower)
+    return trend, direction, long_, short
 
 
 def get_basic_bands(med_price, atr, multiplier):
@@ -174,7 +185,7 @@ def get_basic_bands(med_price, atr, multiplier):
 def get_final_bands(close, upper, lower):
     trend = pd.Series(np.full(close.shape, np.nan), index=close.index)
     dir_ = pd.Series(np.full(close.shape, 1), index=close.index)
-    long = pd.Series(np.full(close.shape, np.nan), index=close.index)
+    long_ = pd.Series(np.full(close.shape, np.nan), index=close.index)
     short = pd.Series(np.full(close.shape, np.nan), index=close.index)
 
     for i in range(1, close.shape[0]):
@@ -190,8 +201,8 @@ def get_final_bands(close, upper, lower):
                 upper.iloc[i] = upper.iloc[i - 1]
 
         if dir_.iloc[i] > 0:
-            trend.iloc[i] = long.iloc[i] = lower.iloc[i]
+            trend.iloc[i] = long_.iloc[i] = lower.iloc[i]
         else:
             trend.iloc[i] = short.iloc[i] = upper.iloc[i]
 
-    return trend, dir_, long, short
+    return trend, dir_, long_, short

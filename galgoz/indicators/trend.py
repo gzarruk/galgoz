@@ -138,6 +138,10 @@ class SuperTrend(Indicator):
         self.data = new_data
         self.run()
 
+def _supertrend(data, atr_period=14, multiplier=6.5):
+    # Instance of supertrend indicator used to generate the SuperTrend class
+    res = supertrend(data.mid_h, data.mid_l, data.mid_c, atr_period, multiplier)
+    return res
 
 def supertrend(
     high: pd.Series,
@@ -150,8 +154,10 @@ def supertrend(
     Calculate the Supertrend indicator. Adapted from https://medium.datadriveninvestor.com/superfast-supertrend-6269a3af0c2a
 
     Args:
-        data (pd.DataFrame): The DataFrame containing the data.
-        atr_period (int, optional): The ATR period. Defaults to 14.
+        high (pd.Series): The high prices.
+        low (pd.Series): The low prices.
+        close (pd.Series): The close prices.
+        period (int, optional): The ATR period. Defaults to 14.
         multiplier (float, optional): The multiplier. Defaults to 6.5.
 
     Returns:

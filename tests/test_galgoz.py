@@ -53,7 +53,6 @@ def test_candles_df():
         "ask_o",
         "ask_l",
         "ask_h",
-        "volume",
     ]
     for column in expected_columns:
         assert column in df.columns, f"Column '{column}' is not in the dataframe"

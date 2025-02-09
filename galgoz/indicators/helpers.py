@@ -5,7 +5,7 @@ import pandas as pd
 class Hline(Indicator):
     yvalue: float = 0
     row: int = 2
-    line: dict = dict(color="grey", width=1)
+    line: list[dict] = [dict(color="grey", width=1)]
 
     def __init__(self, data: pd.DataFrame, yvalue: float = yvalue, **kwargs):
         super().__init__(name="hline", data=data)

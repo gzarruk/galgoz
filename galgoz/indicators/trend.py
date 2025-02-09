@@ -3,7 +3,7 @@ import numpy as np
 from scipy import signal  # type: ignore
 from ..indicators.base import Indicator
 import talib
-from vectorbt import IndicatorFactory as IF
+from vectorbt import IndicatorFactory as IF  # type: ignore
 
 
 class SG(Indicator):

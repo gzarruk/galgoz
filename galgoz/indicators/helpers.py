@@ -3,14 +3,16 @@ import pandas as pd
 
 
 class Hline(Indicator):
+    data: pd.DataFrame = pd.DataFrame()
     yvalue: float = 0
     row: int = 2
     line: list[dict] = [dict(color="grey", width=1)]
 
     def __init__(self, data: pd.DataFrame, yvalue: float = yvalue, **kwargs):
-        super().__init__(name="hline", data=data)
+        super().__init__(name="hline")
+        self.data = data
         self.yvalue = yvalue
-        if data is not None:
+        if self.data is not None:
             self.run()
         self._update_attributes(kwargs)
 

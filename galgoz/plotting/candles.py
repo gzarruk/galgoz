@@ -90,7 +90,9 @@ def plot(
 def add_indicators_to_plot(indicators, fig):
     if indicators is not None:
         for indicator in indicators:
-            xdata = pd.Series(indicator["data"].index).dt.strftime(" %-b %d, '%y %H:%M")
+            xdata = pd.Series(indicator["output"].index).dt.strftime(
+                " %-b %d, '%y %H:%M"
+            )
             if isinstance(indicator["output"], pd.DataFrame):
                 for i, column in enumerate(indicator["output"].columns):
                     fig.add_trace(
@@ -113,7 +115,7 @@ def add_indicators_to_plot(indicators, fig):
                         mode=indicator["mode"][0],
                         line=indicator["line"][0],
                         marker=indicator["marker"][0],
-                        name=indicator["name"][0],
+                        name=indicator["name"],
                     ),
                     row=indicator["row"],
                     col=1,

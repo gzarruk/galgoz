@@ -9,93 +9,111 @@ from vectorbt import IndicatorFactory as IF  # type: ignore
 class SG(Indicator):
     window: int = 250
     order: int = 2
-    line_color: str = "blue"
+    line: list[dict] = [dict(color="blue", width=2)]
 
     def __init__(
-        self, data: pd.DataFrame, window: int = window, order: int = order, **kwargs
+        self,
+        data: pd.DataFrame | None = None,
+        window: int = window,
+        order: int = order,
+        **kwargs,
     ):
-        super().__init__(name="SG", data=data)
+        super().__init__(name="SG")
         self.window = window
         self.order = order
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Savitzky-Golay Filter (window={self.window}, order={self.order})"
 
-    def run(self):
-        res = signal.savgol_filter(
-            self.data.mid_c.values, window_length=self.window, polyorder=self.order
-        )
-        self.output = pd.Series(res, index=self.data.index, name="SG")
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            res = signal.savgol_filter(
+                data.mid_c.values, window_length=self.window, polyorder=self.order
+            )
+            self.output = pd.Series(res, index=data.index, name="SG")
+        else:
+            self.output = None
 
     def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+        if new_data is not None:
+            self.run(new_data)
+        else:
+            print("No new data provided.")
+            self.output = None
 
 
 class HMA(Indicator):
     window: int = 169
-    line_color: str = "blue"
+    line: list[dict] = [dict(color="green", width=2)]
 
-    def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="HMA", data=data)
+    def __init__(
+        self, data: pd.DataFrame | None = None, window: int = window, **kwargs
+    ):
+        super().__init__(name="HMA")
         self.window = window
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Hull Moving Average (window={self.window})"
 
-    def run(self):
-        wma1 = 2 * self.data.mid_c.rolling(window=self.window // 2).mean()
-        wma2 = self.data.mid_c.rolling(window=self.window).mean()
-        diff = wma1 - wma2
-        self.output = diff.rolling(window=int(np.sqrt(self.window))).mean()
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            wma1 = 2 * data.mid_c.rolling(window=self.window // 2).mean()
+            wma2 = data.mid_c.rolling(window=self.window).mean()
+            diff = wma1 - wma2
+            self.output = diff.rolling(window=int(np.sqrt(self.window))).mean()
+        else:
+            self.output = None
 
     def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+        if new_data is not None:
+            self.run(new_data)
+        else:
+            print("No new data provided.")
+            self.output = None
 
 
 class SuperTrend(Indicator):
+    # data: pd.DataFrame = pd.DataFrame()
     atr_period: int = 14
     multiplier: float = 6.5
-    line_color: str = "green"
+    line: list[dict] = [dict(color="blue", width=2)]
 
     def __init__(
         self,
-        data: pd.DataFrame,
+        data: pd.DataFrame | None = None,
         atr_period: int = atr_period,
         multiplier: float = multiplier,
         **kwargs,
     ):
-        super().__init__(name=self.__class__.__name__, data=data)
+        super().__init__(name="ST")
         self.atr_period = atr_period
         self.multiplier = multiplier
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return (
             f"Supertrend (ATR period={self.atr_period}, multiplier={self.multiplier})"
         )
 
-    def run(self):
-        st = _supertrend(
-            self.data,
-            self.atr_period,
-            self.multiplier,
-        )
-
-        self.output = st[0]
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            st = _supertrend(
+                data=data,
+                atr_period=self.atr_period,
+                multiplier=self.multiplier,
+            )
+            self.output = st[0]
+        else:
+            self.output = None
 
     def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+        if new_data is not None:
+            self.run(new_data)
+        else:
+            print("No new data provided.")
+            self.output = None
 
 
 def _supertrend(data, atr_period=14, multiplier=6.5):

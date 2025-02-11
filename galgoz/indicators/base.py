@@ -74,7 +74,7 @@ class Indicator(BaseModel):
                 for line_dict in self.line:
                     line_dict["color"] = value
 
-    def run(self):
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
         """
         This method should be implemented by subclasses to populate the output attribute.
         """
@@ -82,15 +82,12 @@ class Indicator(BaseModel):
             "Subclasses should implement this method to populate the output attribute."
         )
 
-    def update(self, new_data: Optional[pd.DataFrame | None]):
-        """
-        This method should be implemented by subclasses to update the indicator with new data and recalculate the output attribute.
-        """
-        if new_data is None or len(new_data) == 0:
-            print("No data provided.")
-        raise NotImplementedError(
-            "Subclasses should implement this method to update the indicator with new data and recalculate the output attribute."
-        )
+    def update(self, new_data: pd.DataFrame | None):
+        if new_data is not None:
+            self.run(new_data)
+        else:
+            print("No new data provided.")
+            self.output = None
 
     def _initialize_data(self, data, **kwargs):
         if data is not None:

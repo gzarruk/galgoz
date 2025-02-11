@@ -35,12 +35,12 @@ class SG(Indicator):
         else:
             self.output = None
 
-    def update(self, new_data: pd.DataFrame | None):
-        if new_data is not None:
-            self.run(new_data)
-        else:
-            print("No new data provided.")
-            self.output = None
+    # def update(self, new_data: pd.DataFrame | None):
+    #     if new_data is not None:
+    #         self.run(new_data)
+    #     else:
+    #         print("No new data provided.")
+    #         self.output = None
 
 
 class HMA(Indicator):
@@ -66,12 +66,12 @@ class HMA(Indicator):
         else:
             self.output = None
 
-    def update(self, new_data: pd.DataFrame | None):
-        if new_data is not None:
-            self.run(new_data)
-        else:
-            print("No new data provided.")
-            self.output = None
+    # def update(self, new_data: pd.DataFrame | None):
+    #     if new_data is not None:
+    #         self.run(new_data)
+    #     else:
+    #         print("No new data provided.")
+    #         self.output = None
 
 
 class SuperTrend(Indicator):
@@ -108,12 +108,12 @@ class SuperTrend(Indicator):
         else:
             self.output = None
 
-    def update(self, new_data: pd.DataFrame | None):
-        if new_data is not None:
-            self.run(new_data)
-        else:
-            print("No new data provided.")
-            self.output = None
+    # def update(self, new_data: pd.DataFrame | None):
+    #     if new_data is not None:
+    #         self.run(new_data)
+    #     else:
+    #         print("No new data provided.")
+    #         self.output = None
 
 
 def _supertrend(data, atr_period=14, multiplier=6.5):

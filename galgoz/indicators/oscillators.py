@@ -52,10 +52,6 @@ class RSI(Indicator):
         else:
             self.output = None
 
-    def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
-
 
 class QQE(Indicator):
     row: int = 2
@@ -77,26 +73,23 @@ class QQE(Indicator):
         factor: float = factor,
         **kwargs,
     ):
-        super().__init__(name="QQE", data=data)
+        super().__init__(name="QQE")
         self.length = length
         self.smooth = smooth
         self.factor = factor
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Quantitative Qualitative Estimation (length={self.length})"
 
-    def run(self):
-        result = qqe(
-            self.data, length=self.length, smooth=self.smooth, factor=self.factor
-        )
-        self.output = result[["qqe_fast", "qqe_slow"]]
-
-    def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            result = qqe(
+                data, length=self.length, smooth=self.smooth, factor=self.factor
+            )
+            self.output = result[["qqe_fast", "qqe_slow"]]
+        else:
+            self.output = None
 
 
 def qqe(

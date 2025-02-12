@@ -3,27 +3,22 @@ import pandas as pd
 
 
 class Hline(Indicator):
-    data: pd.DataFrame = pd.DataFrame()
     yvalue: float = 0
     row: int = 2
     line: list[dict] = [dict(color="grey", width=1)]
 
     def __init__(self, data: pd.DataFrame, yvalue: float = yvalue, **kwargs):
         super().__init__(name="hline")
-        self.data = data
         self.yvalue = yvalue
-        if self.data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Horizontal Line (yvalue={self.yvalue})"
 
-    def run(self):
-        self.output = pd.Series(
-            [self.yvalue] * len(self.data), index=self.data.index, name="hline"
-        )
-
-    def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            self.output = pd.Series(
+                [self.yvalue] * len(data), index=data.index, name="hline"
+            )
+        else:
+            self.output = None

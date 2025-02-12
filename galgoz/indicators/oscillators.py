@@ -9,50 +9,48 @@ class WPR(Indicator):
     row: int = 2
     window: int = 14
 
-    def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="WPR", data=data)
+    def __init__(self, data: pd.DataFrame | None, window: int = window, **kwargs):
+        super().__init__(name="WPR")
         self.window = window
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Williams %R (window={self.window})"
 
-    def run(self):
-        res = WILLR(
-            self.data["mid_h"],
-            self.data["mid_l"],
-            self.data["mid_c"],
-            timeperiod=self.window,
-        )
-        self.output = pd.Series(res, index=self.data.index, name="WPR")
-
-    def update(self, new_data: pd.DataFrame | None):
-        self.data = new_data
-        self.run()
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            res = WILLR(
+                data["mid_h"].to_numpy(),
+                data["mid_l"].to_numpy(),
+                data["mid_c"].to_numpy(),
+                timeperiod=self.window,
+            )
+            self.output = pd.Series(res, index=data.index, name="WPR")
+        else:
+            self.output = None
 
 
 class RSI(Indicator):
     row: int = 2
     window: int = 14
 
-    def __init__(self, data: pd.DataFrame, window: int = window, **kwargs):
-        super().__init__(name="RSI", data=data)
+    def __init__(self, data: pd.DataFrame | None, window: int = window, **kwargs):
+        super().__init__(name="RSI")
         self.window = window
-        if data is not None:
-            self.run()
-        self._update_attributes(kwargs)
+        self._initialize_data(data, **kwargs)
 
     def __str__(self):
         return f"Relative Strength Index (window={self.window})"
 
-    def run(self):
-        res = rsi(
-            self.data.mid_c,
-            timeperiod=self.window,
-        )
-        self.output = pd.Series(res, index=self.data.index, name="RSI")
+    def run(self, data: pd.DataFrame | None = None, **kwargs):
+        if data is not None:
+            res = rsi(
+                data.mid_c.to_numpy(dtype=np.float64),
+                timeperiod=self.window,
+            )
+            self.output = pd.Series(res, index=data.index, name="RSI")
+        else:
+            self.output = None
 
     def update(self, new_data: pd.DataFrame | None):
         self.data = new_data
